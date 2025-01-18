@@ -7,7 +7,7 @@ close all;
 %% Robot models in Robotics Toolbox
 % Compute parameters 
 %% PUT YOUR ID NUMBER HERE
-finalPose=ComputeParameters([X X X X X X X X]);
+finalPose=ComputeParameters([7 7 2 0 1 2 5 2]);
 %%
 % Manipulator robot model
 % abbIrb120T, abbIrb1600, fanucLRMate200ib, fanucM16ib, universalUR3, universalUR3e, universalUR5, universalUR5e, universalUR10, universalUR10e, universalUR16e

@@ -32,18 +32,14 @@ taskFinal = trvec2tform(finalPose)*axang2tform([0 0 1 pi/2]);  % final pose
 
 %% 1 Calcular velocidades de las ruedas
 
-joint_velocities = stateTask(:,7:12);
+% Valores de la trayectoria
 x_dot = stateTask(:,13);
 x = stateTask(:,1);
 phi = stateTask(:,2);
 phi_dot = stateTask(:,14);
 
-% No tenemos ni idea:
+% DUDA: 
 y_dot = zeros(size(x_dot));
-
-LB = 0;
-r = 0.165;
-a = 0.560/2;
 
 num_points = length(x_dot);
 wheel_velocities = zeros(2, num_points);
@@ -52,11 +48,7 @@ for i = 1:num_points
     phi_i = phi(i);
     
     % Calcular la Jacobiana de la base para el instante actual
-    J_base = [
-        (r/2)*cos(phi_i) + (r*LB/(2*a))*sin(phi_i), (r/2)*cos(phi_i) - (r*LB/(2*a))*sin(phi_i);
-        (r/2)*sin(phi_i) - (r*LB/(2*a))*cos(phi_i), (r/2)*sin(phi_i) + (r*LB/(2*a))*cos(phi_i);
-        -r/(2*a), r/(2*a)
-    ];
+    J_base = J_base_fcn(phi_i);
     
     J_base_inv = pinv(J_base);
     
@@ -69,7 +61,7 @@ vr_left = wheel_velocities(1, :);
 vr_right = wheel_velocities(2, :);
 
 % Mostrar o analizar las velocidades
-disp('Velocidades de las ruedas (izquierda y derecha):');
+disp('Velocidades de las ruedas calculadas (izquierda y derecha):');
 disp(wheel_velocities');
 
 %% 2. Aplicar la Jacobiana del manipulador móvil para obtener vel. del efector final
@@ -78,6 +70,10 @@ disp(wheel_velocities');
 
 num_points = length(x_dot);
 end_effector_velocities = zeros(6, num_points);
+
+LB = 0;
+r = 0.165;
+a = 0.560/2;
 
 for i = 1:num_points
     
@@ -97,7 +93,7 @@ for i = 1:num_points
         -r/(2*a), r/(2*a)
     ];
     
-    J_mani = J_mani_fcn(qi);
+    J_mani = J_mani_fcn(q_i);
     
     J_global = [R_phi_fcn(phi_i) * J_mani  J_base2];
     
@@ -108,7 +104,7 @@ end
 
 % Inicialización de posición y orientación del efector final
 end_effector_pose = zeros(6, num_points); % [x; y; z; roll; pitch; yaw]
-end_effector_pose(:, 1) = [0; 0; 0; 0; 0; 0]; % Pose inicial (puedes ajustarla según el caso)
+end_effector_pose(:, 1) = [taskInit(1:3,4); 0; 0; 0]; % Pose inicial (puedes ajustarla según el caso)
 
 % Integración para calcular posición y orientación
 for i = 2:num_points

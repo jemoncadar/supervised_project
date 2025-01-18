@@ -80,14 +80,14 @@ for i=1 : num_points
     tNow = trajTimes(i);
     configNow = interp1(tTask, stateTask, tNow);
     
-    q_i = configNow(7:12);
-    q_dot_i = (q_i - q_previo) / timeStep;
+    q_i = configNow(i, 7:12);
+    q_dot_i = (q_i - q_i_previo) / timeStep;
 
     phi = configNow(2);
     vr_left_i = vr_left(i);
     vr_right_i = vr_right(i);
 
-    q = [q_dot_i'; vr_left_i; vr_right_i];
+    q = [q_dot(i,:)'; vr_left_i; vr_right_i];
     
     J_base2 = [
         (r/2)*cos(phi) + (r*LB/(2*a))*sin(phi), (r/2)*cos(phi) - (r*LB/(2*a))*sin(phi);
@@ -103,26 +103,28 @@ for i=1 : num_points
     J_global = [R_phi_fcn(phi) * J_mani  J_base2];
     
     end_effector_velocities(:, i) = J_global * q;
-
-    q_previo = q_i;
 end
 
 %% 3. Integración para obtener posición y orientación del efector final
 
+% Inicialización de posición y orientación del efector final
 end_effector_pose = zeros(6, num_points); % [x; y; z; roll; pitch; yaw]
-
 end_effector_pose(:, 1) = [taskInit(1:3,4); 0; 0; 0]; % Pose inicial (puedes ajustarla según el caso)
 
 % Integración para calcular posición y orientación
-for i=2 : num_points
+for i = 2:num_points
+    % Velocidad lineal y angular en el instante anterior
     linear_velocity = end_effector_velocities(1:3, i-1); % [vx; vy; vz]
     angular_velocity = end_effector_velocities(4:6, i-1); % [wx; wy; wz]
     
+    % Integrar posición (x, y, z) usando velocidades lineales
     end_effector_pose(1:3, i) = end_effector_pose(1:3, i-1) + linear_velocity * timeStep;
     
+    % Integrar orientación (roll, pitch, yaw) usando velocidades angulares
     end_effector_pose(4:6, i) = end_effector_pose(4:6, i-1) + angular_velocity * timeStep;
 end
 
+% Mostrar o analizar los resultados
 disp('Posición y orientación del efector final en cada instante de tiempo:');
 disp(end_effector_pose);
 
@@ -152,19 +154,4 @@ title('Graph of posesNow Columns');
 legend('Column 1', 'Column 2', 'Column 3', 'Column 4', 'Column 5', 'Column 6'); % Leyenda
 grid on; % Activar la cuadrícula
 
-%% 
-% Mobile robot representation in Cartesian space
-show(robot,currentRobotJConfig,'PreservePlot',false,'Frames','off');   % Initial pose
-title('Mobile manipulator trajectory')
-hold on
-axis([-1 3.5 -1 1.5 -0.2 1]);        % appropriate axis dimensions
-for i=1:length(trajTimes)
-    tNow= trajTimes(i);    % current time
-    % Interpolation for the current pose (in time tNow)
-    configNow = interp1(tTask,stateTask(:,1:numJoints),tNow); % mobile manipulator config in joint space
-    % poseNow = getTransform(robot,configNow,endEffector);     % end-effector position in transform matrix
-
-    show(robot, configNow,'PreservePlot',false,'Frames','off');
-    taskSpaceMarker = plot3(end_effector_pose(i, 1),end_effector_pose(i, 2),end_effector_pose(i, 3),'b.','MarkerSize',20);
-    drawnow;
-end
+% t_sol =  1.2461    0.3217   -0.0158 

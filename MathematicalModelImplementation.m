@@ -7,7 +7,7 @@ close all;
 %% Robot models in Robotics Toolbox
 % Compute parameters 
 %% PUT YOUR ID NUMBER HERE
-finalPose=ComputeParameters([7 7 2 0 1 2 5 2]);
+finalPose=ComputeParameters([7 7 6 8 4 6 8 2]);
 %%
 % Manipulator robot model
 % abbIrb120T, abbIrb1600, fanucLRMate200ib, fanucM16ib, universalUR3, universalUR3e, universalUR5, universalUR5e, universalUR10, universalUR10e, universalUR16e
@@ -30,7 +30,7 @@ taskFinal = trvec2tform(finalPose)*axang2tform([0 0 1 pi/2]);  % final pose
 
 [trajTimes, tTask, stateTask]=GenerateCartesianTraj(robot, jointInit, taskInit, taskFinal, timeStep, toolSpeed);
 
-timeSteps = tTask'(2:end) - tTask'(1:end);
+timeSteps = tTask(2:end)' - tTask(1:end)';
 
 %% 1 Calcular velocidades de las ruedas
 
@@ -165,6 +165,9 @@ for i=1:length(trajTimes)
     % poseNow = getTransform(robot,configNow,endEffector);     % end-effector position in transform matrix
 
     show(robot, configNow,'PreservePlot',false,'Frames','off');
-    taskSpaceMarker = plot3(end_effector_pose(i, 1),end_effector_pose(i, 2),end_effector_pose(i, 3),'b.','MarkerSize',20);
+    taskSpaceMarker = plot3(end_effector_pose(1, i),end_effector_pose(2, i),end_effector_pose(3, i),'b.','MarkerSize',20);
+    %if i <= 73
+    %    taskSpaceMarker2 = plot3(pose_sol(i, 1),pose_sol(i, 2),pose_sol(i, 3),'r.','MarkerSize',20);
+    %end
     drawnow;
 end
